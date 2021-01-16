@@ -140,7 +140,7 @@ time_t adri_timeNtp::timeFromEsp_set(String str) {
 	int 	s_hr 	= split_time[0];
 	int 	s_min 	= split_time[1];
 	int 	s_sec 	= split_time[2];
-	int 	dw 		= s_dw.toInt();
+	// int 	dw 		= s_dw.toInt();
 	// TimeElements myTimeElements;
 	// myTimeElements myElements = {sec, min, hr, dw, day, mon, ( year-1970) };
 	char buff[120];
@@ -175,6 +175,7 @@ time_t adri_timeNtp::timeFromEsp_set(String str) {
 	
 
 	// sreen_go_home();
+		return adri_timeNtp_espApTime;
 
 }
 void adri_timeNtp::timeZone_set(int value){timeZone=value;}
