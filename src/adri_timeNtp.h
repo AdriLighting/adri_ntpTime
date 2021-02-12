@@ -5,10 +5,11 @@
 
 	// #ifdef MRLNTPTIME
 
+
+		#include <arduino.h>
 		#include <TimeLib.h>
 		#include <ESP8266WiFi.h>
 		#include <WiFiUdp.h>
-		#include <arduino.h>
 
 		// void 	ntp_setup(boolean WifiConnected);
 		// extern time_t ntp_prevDisplay;
@@ -52,7 +53,8 @@
 
 			time_t 	timeget();
 			void 	dateGet(int & wDay, int & sMon, int & sYear) ;
-
+			void 	ntpTime_getTime(String & ret) ;
+			String 	ntpTime_toString(time_t t) ;
 		};
 
 		adri_timeNtp * adri_timeNtp_instance() ;

@@ -4,28 +4,55 @@
 // #ifdef MRLNTPTIME
 
 #include <Arduino.h>
-#include <adri_tools.h>
 
 
 namespace {
+	void seconds2time(unsigned long s, char * time) {
+	   // int milli      = (s                    ) % 1000;
+	   int seconds    = (s /   (1000)         ) % 60   ;
+	   int minutes    = (s /   (1000*60)      ) % 60   ;
+	   int hours      = (s /   (1000*3600)    ) % 24   ;
+	   int days    = (s /  (1000*3600*24)  )     ;
+	   sprintf(time,"%d-%02d:%02d:%02d", days, hours , minutes, seconds);
+	}
+	String on_time() {
+	   char t[100];
+	   unsigned long offset = 0; //1000 * 60 * 60 * 24 * 3 ;
+	   unsigned long ms=millis()+offset;
+	   seconds2time(ms, t);
+	   return String(t);
+	}	
+	String literal_value(String name, String xml){
+	   String open,close;
+	   String value = "";
+	   int start, end;
+	   open="<"+name+">";
+	   close="</"+name+">";
+	   start=xml.indexOf(open);
+	   if (start!=-1) {
+	      start+=name.length()+2;
+	      end=xml.indexOf(close);
+	      value=xml.substring(start,end);
+	   }
+	   return value;
+	}	
+	int* splitTime(String Val, char sep) {
+	    String      aVal            = Val;
+	    byte        firstIndex      = aVal.indexOf(sep);
+	    byte        secondIndex     = aVal.indexOf(sep, firstIndex + 1);
+	    String      hr              = aVal.substring(0, firstIndex);
+	    String      minute          = aVal.substring(firstIndex + 1, secondIndex);
+	    String      sec             = aVal.substring(secondIndex + 1);
+	    int         _hr             = hr.toInt();
+	    int         _minute         = minute.toInt();
+	    int         _sec            = sec.toInt();
 
-	// int* splitTime(String Val, char sep) {
-	//     String      aVal            = Val;
-	//     byte        firstIndex      = aVal.indexOf(sep);
-	//     byte        secondIndex     = aVal.indexOf(sep, firstIndex + 1);
-	//     String      hr              = aVal.substring(0, firstIndex);
-	//     String      minute          = aVal.substring(firstIndex + 1, secondIndex);
-	//     String      sec             = aVal.substring(secondIndex + 1);
-	//     int         _hr             = hr.toInt();
-	//     int         _minute         = minute.toInt();
-	//     int         _sec            = sec.toInt();
-
-	//     int     *array          = new int[3];
-	//             array[0]        = _hr;
-	//             array[1]        = _minute;
-	//             array[2]        = _sec;
-	//     return array;    
-	// }
+	    int     *array          = new int[3];
+	            array[0]        = _hr;
+	            array[1]        = _minute;
+	            array[2]        = _sec;
+	    return array;    
+	}
 
 	/*-------- NTP code ----------*/
 	const int NTP_PACKET_SIZE = 48; // NTP time is in the first 48 bytes of message
@@ -213,4 +240,18 @@ void adri_timeNtp::loop(){
 	}   
 
 }
-// #endif
+
+void adri_timeNtp::ntpTime_getTime(String & ret) {
+    time_t  time;
+    if (adri_timeNtp_instance()!=nullptr){
+        time    = timeget();
+        ret     = ntpTime_toString(time);           
+    } else {
+        ret = on_time();                     
+    }
+}
+String adri_timeNtp::ntpTime_toString(time_t t) {
+    char tmpStr[100];
+    sprintf(tmpStr, "%02d:%02d:%02d", hour(t), minute(t), second(t));
+    return String(tmpStr);
+}
