@@ -49,10 +49,11 @@
 			void 	timeIsSet(boolean & value);
 
 			time_t 	timeFromEsp_set(String str);
-
-			time_t 	timeget();
+			
 			void 	dateGet(int & wDay, int & sMon, int & sYear) ;
-
+			time_t 	timeget();
+			void 	timeget(String & ret) ;
+			String 	timetoString(time_t t) ;
 		};
 
 		adri_timeNtp * adri_timeNtp_instance() ;

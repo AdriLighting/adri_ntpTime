@@ -4,28 +4,54 @@
 // #ifdef MRLNTPTIME
 
 #include <Arduino.h>
-#include <adri_tools.h>
-
 
 namespace {
+	void seconds2time(unsigned long s, char * time) {
+	   // int milli      = (s                    ) % 1000;
+	   int seconds    = (s /   (1000)         ) % 60   ;
+	   int minutes    = (s /   (1000*60)      ) % 60   ;
+	   int hours      = (s /   (1000*3600)    ) % 24   ;
+	   int days    = (s /  (1000*3600*24)  )     ;
+	   sprintf(time,"%d-%02d:%02d:%02d", days, hours , minutes, seconds);
+	}
+	String on_time() {
+	   char t[100];
+	   unsigned long offset = 0; //1000 * 60 * 60 * 24 * 3 ;
+	   unsigned long ms=millis()+offset;
+	   seconds2time(ms, t);
+	   return String(t);
+	}	
+	String literal_value(String name, String xml){
+	   String open,close;
+	   String value = "";
+	   int start, end;
+	   open="<"+name+">";
+	   close="</"+name+">";
+	   start=xml.indexOf(open);
+	   if (start!=-1) {
+	      start+=name.length()+2;
+	      end=xml.indexOf(close);
+	      value=xml.substring(start,end);
+	   }
+	   return value;
+	}	
+	int* splitTime(String Val, char sep) {
+	    String      aVal            = Val;
+	    byte        firstIndex      = aVal.indexOf(sep);
+	    byte        secondIndex     = aVal.indexOf(sep, firstIndex + 1);
+	    String      hr              = aVal.substring(0, firstIndex);
+	    String      minute          = aVal.substring(firstIndex + 1, secondIndex);
+	    String      sec             = aVal.substring(secondIndex + 1);
+	    int         _hr             = hr.toInt();
+	    int         _minute         = minute.toInt();
+	    int         _sec            = sec.toInt();
 
-	// int* splitTime(String Val, char sep) {
-	//     String      aVal            = Val;
-	//     byte        firstIndex      = aVal.indexOf(sep);
-	//     byte        secondIndex     = aVal.indexOf(sep, firstIndex + 1);
-	//     String      hr              = aVal.substring(0, firstIndex);
-	//     String      minute          = aVal.substring(firstIndex + 1, secondIndex);
-	//     String      sec             = aVal.substring(secondIndex + 1);
-	//     int         _hr             = hr.toInt();
-	//     int         _minute         = minute.toInt();
-	//     int         _sec            = sec.toInt();
-
-	//     int     *array          = new int[3];
-	//             array[0]        = _hr;
-	//             array[1]        = _minute;
-	//             array[2]        = _sec;
-	//     return array;    
-	// }
+	    int     *array          = new int[3];
+	            array[0]        = _hr;
+	            array[1]        = _minute;
+	            array[2]        = _sec;
+	    return array;    
+	}
 
 	/*-------- NTP code ----------*/
 	const int NTP_PACKET_SIZE = 48; // NTP time is in the first 48 bytes of message
@@ -126,8 +152,6 @@ void adri_timeNtp::sendNTPpacket(IPAddress &address)
 }				
 
 time_t adri_timeNtp::timeFromEsp_set(String str) {
-	// if (wifi_sta_connected && time_ready) return 0;
-
 
 	String s_d 	= literal_value("date", str);	
 	String s_t 	= literal_value("time", str);	
@@ -140,13 +164,9 @@ time_t adri_timeNtp::timeFromEsp_set(String str) {
 	int 	s_hr 	= split_time[0];
 	int 	s_min 	= split_time[1];
 	int 	s_sec 	= split_time[2];
-	int 	dw 		= s_dw.toInt();
-	// TimeElements myTimeElements;
-	// myTimeElements myElements = {sec, min, hr, dw, day, mon, ( year-1970) };
+
 	char buff[120];
-
 	sprintf(buff, "\n(timeFromEsp_set)\n%02d%02d%02d %02d%02d%02d", s_year, s_mon, s_day, s_hr, s_min, s_sec);
-
 	Serial.println(buff);
 
 	myTimeElements.Year = ( s_year-1970);
@@ -155,30 +175,34 @@ time_t adri_timeNtp::timeFromEsp_set(String str) {
 	myTimeElements.Hour = s_hr;
 	myTimeElements.Minute = s_min;
 	myTimeElements.Second = s_sec;
-
 	time_t t = makeTime(myTimeElements);
-
-	// sprintf(buff, "%02d%02d%02d %02d%02d%02d", year(t), month(t), day(t), hour(t), minute(t), second(t));
-
-	// Serial.println(buff);
 
 	adri_timeNtp_espApTime = t;
 	setTime(adri_timeNtp_espApTime);  
-	// time_t 	t 			= AlarmHMS(hr,min,sec);
 
-	// if (!time_ready) {
-		// event_setup();
-		setSyncProvider(adri_timeNtp_timeFromEsp);
-		setSyncInterval(10000);	
-		// time_ready = true;
-	// } 
-	
+	setSyncProvider(adri_timeNtp_timeFromEsp);
+	setSyncInterval(10000);	
 
-	// sreen_go_home();
+	time_isSet = true;	
 
 }
 void adri_timeNtp::timeZone_set(int value){timeZone=value;}
 void adri_timeNtp::timeIsSet(boolean & value){value=time_isSet;}
+
+
+void adri_timeNtp::setup(boolean WifiConnected){
+
+	time_isSet = WifiConnected;
+
+	if (!WifiConnected) return;
+
+	udpServer.begin(localPort);
+	setSyncProvider(adri_timeNtp_getNtpTime);
+	setSyncInterval(10000);	
+}
+void adri_timeNtp::loop(){
+	if (now() != prevDisplay) {prevDisplay = now();}   
+}
 time_t adri_timeNtp::timeget() {
 	if(adri_timeNtp_ptr == nullptr) return 0;
 	return prevDisplay;
@@ -189,27 +213,17 @@ void adri_timeNtp::dateGet(int & wDay, int & sMon, int & sYear) {
 	sMon 	= month(now());
 	sYear 	= year(now());
 }
-
-void adri_timeNtp::setup(boolean WifiConnected){
-
-	time_isSet = WifiConnected;
-
-	if (!WifiConnected) return;
-
-	// fsprintfs("\n[adri_timeNtp::setup]\n");
-
-	udpServer.begin(localPort);
-	setSyncProvider(adri_timeNtp_getNtpTime);
-	setSyncInterval(10000);	
-
-
+String adri_timeNtp::timetoString(time_t t) {
+    char tmpStr[100];
+    sprintf(tmpStr, "%02d:%02d:%02d", hour(t), minute(t), second(t));
+    return String(tmpStr);
 }
-void adri_timeNtp::loop(){
-
-	if (now() != prevDisplay) { 
-		prevDisplay = now(); 
-		// fsprintf("\n[adri_timeNtp::loop][prevDisplay: %s]", timer_toString(prevDisplay).c_str());
-	}   
-
+void adri_timeNtp::timeget(String & ret) {
+    time_t  time;
+    if (adri_timeNtp_instance()!=nullptr){
+        time    = timeget();
+        ret     = timetoString(time);           
+    } else {
+        ret = on_time();                     
+    }
 }
-// #endif
