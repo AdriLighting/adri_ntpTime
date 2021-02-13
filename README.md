@@ -31,7 +31,7 @@ platformio.ini
 platform=espressif8266
 board=nodemcuv2
 framework=arduino
-lib_ignore=
+lib_ignore=WiFi101
 board_build.filesystem=littlefs
 board_build.ldscript=eagle.flash.4m3m.ld
 lib_extra_dirs= ${env.lib_extra_dirs}
