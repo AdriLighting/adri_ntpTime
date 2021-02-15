@@ -7,15 +7,17 @@ Librairies
 <details>
 adri_ntpTime                    = https://github.com/AdriLighting/adri_ntpTime
 
-esp8266/arduino                 = https://github.com/esp8266/Arduino/tree/master/libraries
-
 TimeLib                         = https://github.com/PaulStoffregen/Time
+
+framework                       = https://github.com/esp8266/Arduino/tree/master/libraries
+ESP8266WiFi                     = 
+
 </details>
 Dependency Graph
 <details>
 |-- [adri_ntpTime] 1.0.0
-|   |-- [ESP8266WiFi] 1.0
-|   |-- [TimeLib] 1.6</details>
+|   |-- [TimeLib] 1.6
+|   |-- [ESP8266WiFi] 1.0</details>
 </pre>
 
 <hr>
@@ -24,9 +26,9 @@ Dependency Graph
 
 adriNtpTime_1
 <details>
+<pre>
 platformio.ini
 <details>
-<pre>
 [env:nodemcuv2]
 platform=espressif8266
 board=nodemcuv2
@@ -39,8 +41,8 @@ upload_speed=921600
 [platformio]
 src_dir= ${env.src_dir}
 
-</pre>
 </details>
+</pre>
 <pre>
 Librairies
 <details>
@@ -49,9 +51,14 @@ adri_timer                      = https://github.com/AdriLighting/adri_timer
 adri_wifiConnect                = https://github.com/AdriLighting/adri_wifiConnect
 adri_tools_v2                   = https://github.com/AdriLighting/adri_tools_v2
 
-esp8266/arduino                 = https://github.com/esp8266/Arduino/tree/master/libraries
-
 TimeLib                         = https://github.com/PaulStoffregen/Time
+
+framework                       = https://github.com/esp8266/Arduino/tree/master/libraries
+ESP8266WiFi                     = 
+ESP8266WebServer                = 
+ESP8266mDNS                     = 
+LittleFS(esp8266)               = 
+
 </details>
 Dependency Graph
 <details>
@@ -72,6 +79,5 @@ Dependency Graph
 |   |-- [adri_timer] 1.0.0
 |-- [LittleFS(esp8266)] 0.1.0</details>
 </pre>
-
 </details>
 <hr>
